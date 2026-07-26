@@ -28,27 +28,17 @@ needs to change.
 
 ## 3. Data Flow
 
-Search (query + location)
-│
-▼
-Lead Source module ──► Business rows saved to DB
-│
-▼
-Scraper module ──► Lead row created/updated with email
-│
-▼
-Qualification engine ──► Lead.status = qualified / rejected
-│
-▼
-Dashboard review (human can edit email / status)
-│
-▼
-Outreach module ──► Email sent, OutreachLog row created
-│
-▼
-Lead.status = contacted
+1. **Search** (query + location)
+2. → **Lead Source module** → Business rows saved to DB
+3. → **Scraper module** → Lead row created/updated with email
+4. → **Qualification engine** → Lead.status = qualified / rejected
+5. → **Dashboard review** (human can edit email / status)
+6. → **Outreach module** → Email sent, OutreachLog row created
+7. → **Lead.status = contacted**
 
-
+The Scheduler runs this same flow automatically on a timer for every saved
+search, so the system keeps discovering new leads without anyone opening
+the dashboard.
 
 The Scheduler runs this same flow automatically on a timer for every saved
 search, so the system keeps discovering new leads without anyone opening
