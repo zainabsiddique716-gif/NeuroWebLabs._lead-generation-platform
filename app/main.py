@@ -25,6 +25,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.core.database import get_db, init_db
+from app.core.scheduler import start_scheduler, stop_scheduler, run_all_saved_searches
 from app.models.models import Search, Business, Lead, OutreachLog
 from app.lead_sources.openstreetmap import OpenStreetMapSource
 from app.scrapers.email_extractor import EmailScraper
@@ -52,6 +53,12 @@ email_channel = EmailChannel()
 @app.on_event("startup")
 def on_startup():
     init_db()
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def on_shutdown():
+    stop_scheduler()
 
 
 # ---------- Request Schemas ----------
@@ -285,3 +292,11 @@ def list_searches(db: Session = Depends(get_db)):
     }
 
 
+@app.post("/api/run-scheduled-searches")
+def trigger_scheduled_run():
+    """
+    Manually trigger the same job that runs automatically every
+    SCHEDULE_INTERVAL_HOURS - useful for demo/testing without waiting.
+    """
+    run_all_saved_searches()
+    return {"status": "completed", "message": "All saved searches re-run and new leads auto-qualified"}
