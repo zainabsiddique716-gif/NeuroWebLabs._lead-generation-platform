@@ -1,0 +1,16 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+local_dev.db
+
+# Environment secrets - NEVER push this
+.env
+
+# Node/React
+dashboard/node_modules/
+dashboard/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
