@@ -8,7 +8,6 @@ Kahin bhi hardcoded deep in the logic nahi hai.
 
 from .base import BaseRule
 
-# ---- Easily adjustable settings ----
 MIN_RATING = 3.5   # rating null ho (OSM mein aksar hoti hai) to ye rule skip ho jata hai
 
 
