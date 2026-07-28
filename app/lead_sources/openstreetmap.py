@@ -16,7 +16,15 @@ import requests
 from .base import BaseLeadSource, BusinessResult
 
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
-OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+
+# Multiple mirrors - agar ek server busy/timeout ho to agla try karta hai.
+# Ye Overpass ka free public infrastructure hai, isliye occasional
+# overload hona normal hai - retry logic isay handle karta hai.
+OVERPASS_URLS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.openstreetmap.ru/api/interpreter",
+]
 
 # Free-text query ko OSM tags mein map karta hai.
 # Naya category add karna ho to bas yahan ek entry add karein.
@@ -98,9 +106,21 @@ class OpenStreetMapSource(BaseLeadSource):
         out center {limit};
         """
 
-        resp = requests.post(OVERPASS_URL, data={"data": overpass_query}, headers=HEADERS, timeout=30)
-        resp.raise_for_status()
-        data = resp.json()
+        # Har mirror try karte hain - agar ek timeout/fail ho to agla try
+        data = None
+        last_error = None
+        for overpass_url in OVERPASS_URLS:
+            try:
+                resp = requests.post(overpass_url, data={"data": overpass_query}, headers=HEADERS, timeout=30)
+                resp.raise_for_status()
+                data = resp.json()
+                break  # success - loop se bahar nikal jao
+            except Exception as e:
+                last_error = e
+                continue  # is mirror ne fail kiya, agla try karo
+
+        if data is None:
+            raise ValueError(f"All Overpass servers busy/unreachable right now, try again in a bit ({last_error})")
 
         results = []
         for el in data.get("elements", [])[:limit]:
