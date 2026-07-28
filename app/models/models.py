@@ -1,6 +1,5 @@
 """
 Database tables (SQLAlchemy ORM models).
-
 Pipeline flow: Search -> Business -> Lead -> OutreachLog
 """
 
@@ -9,7 +8,6 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, Text, DateTime, 
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
-
 
 class Search(Base):
     __tablename__ = "searches"
