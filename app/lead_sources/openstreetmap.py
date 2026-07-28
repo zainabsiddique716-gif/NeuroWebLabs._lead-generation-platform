@@ -110,7 +110,7 @@ class OpenStreetMapSource(BaseLeadSource):
         last_error = None
         for overpass_url in OVERPASS_URLS:
             try:
-                resp = requests.post(overpass_url, data={"data": overpass_query}, headers=HEADERS, timeout=30)
+                resp = requests.post(overpass_url, data={"data": overpass_query}, headers=HEADERS, timeout=60)
                 resp.raise_for_status()
                 data = resp.json()
                 break  # success - loop se bahar nikal jao
