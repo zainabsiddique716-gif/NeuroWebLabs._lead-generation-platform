@@ -6,7 +6,7 @@ APScheduler use kiya hai (Celery+Redis ke bajaye) kyunke:
 - Chhoti/medium scale ke liye kaafi hai
 - FastAPI process ke andar hi chalta hai, alag worker deploy nahi karna
 
-Kya karta hai:
+What it does:
 - Har SCHEDULE_INTERVAL_HOURS ghante baad (default 24), saari saved
   searches (Search table) ko dobara run karta hai
 - Naye businesses jo pehle se DB mein nahi hain unhe insert karta hai
