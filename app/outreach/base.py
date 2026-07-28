@@ -1,6 +1,5 @@
 """
 Abstract base for Outreach Channels.
-
 Abhi EmailChannel hai (SMTP se email bhejta hai). Kal agar
 WhatsApp ya LinkedIn outreach add karna ho, to bas BaseChannel
 ko inherit kar ke naya module bana lein.
@@ -14,7 +13,7 @@ from typing import Optional
 @dataclass
 class SendResult:
     success: bool
-    status: str              # "sent" / "dry_run" / "failed"
+    status: str              # "sent" / "dry_run" / "failed".....current condition of message 
     error_message: Optional[str] = None
 
 
