@@ -1,10 +1,10 @@
 """
-Database connection setup.
+Database connection setup
 
 Neon Postgres use karne ke liye .env mein DATABASE_URL set karein:
     DATABASE_URL=postgresql+psycopg2://USER:PASSWORD@HOST/DBNAME?sslmode=require
 
-(Neon dashboard se "Connection string" copy karke yahan paste karein -
+(Neon dashboard se "Connection string" copy and paste here -
  bas 'postgresql://' ko 'postgresql+psycopg2://' se replace kar dein)
 
 Agar DATABASE_URL set nahi hai, app automatically local SQLite file
