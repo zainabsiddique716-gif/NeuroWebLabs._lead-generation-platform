@@ -1,6 +1,5 @@
 """
 Qualification Rules - client brief ke Section 4.3 ke mutabiq.
-
 Ye rules yahan easily adjustable hain - MIN_RATING badalna ho ya
 koi rule on/off karna ho, bas neeche ke values/list change karein.
 Kahin bhi hardcoded deep in the logic nahi hai.
