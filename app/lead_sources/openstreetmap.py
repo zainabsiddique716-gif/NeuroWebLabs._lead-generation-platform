@@ -7,7 +7,7 @@ Do free public APIs use hoti hain:
 2. Overpass   -> us bounding box ke andar business/POI data
                  (name, address, phone, website, lat/lon) deta hai
 
-Rate limit: Nominatim policy ke mutabiq max 1 request/second -
+Rate limit: Nominatim policy ke mutabiq max 1 request per second -
 isliye humne time.sleep() lagaya hai. Ye production mein bhi safe hai.
 """
 
