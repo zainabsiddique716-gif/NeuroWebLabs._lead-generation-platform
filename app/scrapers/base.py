@@ -12,7 +12,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional
 
-
 @dataclass
 class ScrapeResult:
     """Website scrape karne ka result - success ho ya fail, dono cases handle karta hai."""
@@ -22,7 +21,6 @@ class ScrapeResult:
     website_live: bool = False
     error_reason: Optional[str] = None   # e.g. "timeout", "no_email_found", "connection_error"
     pages_checked: list = field(default_factory=list)
-
 
 class BaseScraper(ABC):
     """
