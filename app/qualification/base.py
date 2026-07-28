@@ -21,6 +21,6 @@ class BaseRule(ABC):
         lead: lead ka dict (email, email_found, website_live, etc.)
 
         Returns: (passed, reason) - passed=False ho to reason batata
-        hai kyun reject hua.
+        hai k kyun reject hua.
         """
         raise NotImplementedError
