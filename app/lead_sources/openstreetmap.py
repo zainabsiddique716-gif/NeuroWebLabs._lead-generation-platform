@@ -22,10 +22,9 @@ NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 # overload hona normal hai - retry logic isay handle karta hai.
 OVERPASS_URLS = [
     "https://overpass-api.de/api/interpreter",
+    "https://lz4.overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.openstreetmap.ru/api/interpreter",
 ]
-
 # Free-text query ko OSM tags mein map karta hai.
 # Naya category add karna ho to bas yahan ek entry add karein.
 CATEGORY_MAP = {
