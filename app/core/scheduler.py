@@ -71,7 +71,7 @@ def run_all_saved_searches():
                 db.refresh(biz)
                 new_count += 1
 
-                # Naye business ko turant scrape + qualify bhi kar dete hain
+                # Naye business ko scrape + qualify bhi kar dete hain
                 scrape_result = email_scraper.scrape(biz.website_url or "")
                 lead = Lead(
                     business_id=biz.id, email=scrape_result.email,
