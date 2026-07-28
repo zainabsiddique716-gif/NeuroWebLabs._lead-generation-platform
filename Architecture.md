@@ -1,5 +1,5 @@
 # Architecture Write-Up
-### Local Lead Generation & Outreach Platform
+### Local Lead Generation and Outreach Platform
 
 ## 1. One-Sentence Summary
 
