@@ -3,7 +3,7 @@ Abstract base class for all Lead Source modules.
 
 Har naya lead source (OpenStreetMap, Google Places, LinkedIn, etc.)
 is interface ko implement karega. Pipeline kabhi ye nahi jaanta ke
-data kahan se aa raha hai - bas .search() call karta hai.
+data kahan se aa raha hai - only calls .search() 
 
 Naya source add karna ho to sirf ek nayi file banayein jo
 BaseLeadSource ko inherit kare - kahin aur code change nahi karna.
