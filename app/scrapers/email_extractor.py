@@ -154,5 +154,4 @@ class EmailScraper(BaseScraper):
             result.email_found = True
         else:
             result.error_reason = "no_email_found"
-
         return result
