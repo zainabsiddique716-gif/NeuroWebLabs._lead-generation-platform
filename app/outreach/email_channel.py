@@ -13,7 +13,7 @@ SAFETY: OUTREACH_DRY_RUN=true (default) hone par actual email NAHI
 jata - sirf console mein print hota hai aur "dry_run" status log
 hoti hai. Client brief ka "review before sending" requirement isi
 se implement hota hai. Jab confident ho jayein, .env mein
-OUTREACH_DRY_RUN=false karein.
+OUTREACH_DRY_RUN=false karein.........now it offficially send emails to diffrent organizations
 
 Sending limit: har run mein max DAILY_SEND_LIMIT emails - spam
 flag se bachne ke liye (client brief ka requirement).
