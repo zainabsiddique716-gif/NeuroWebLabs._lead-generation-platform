@@ -5,7 +5,7 @@ Full pipeline: **Search (OpenStreetMap) → Scrape email → Qualify → Review 
 100% free data source (OpenStreetMap), Neon Postgres database, SMTP email outreach (safe dry-run by default).
 
 ---
-
+###Try It Live:https://neuro-web-labs-lead-generation-plat.vercel.app/
 ## Project Structure
 
 ```
