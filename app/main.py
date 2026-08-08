@@ -1,17 +1,5 @@
 """
 Lead Generation Platform - Backend Entry Point (Full Pipeline)
-
-Run karne ka tareeqa (README.md dekhein):
-    uvicorn app.main:app --reload
-
-Endpoints:
-    POST /api/search               -> Google Maps style search, DB mein save karta hai
-    POST /api/scrape/{business_id} -> website se email nikaalta hai, lead banata/update karta hai, auto-qualify
-    GET  /api/leads                -> saare leads (status filter ke saath)
-    PUT  /api/leads/{lead_id}      -> lead edit karein (review before send)
-    POST /api/leads/{lead_id}/send -> outreach email bhejta hai (dry-run safe by default)
-    GET  /api/outreach-logs        -> sab bheji gayi emails ka record
-    GET  /api/searches             -> pichli saved searches
 """
 
 import os
@@ -61,8 +49,6 @@ def on_shutdown():
     stop_scheduler()
 
 
-# ---------- Request Schemas ----------
-
 class SearchRequest(BaseModel):
     query: str
     location: str
@@ -73,8 +59,6 @@ class LeadUpdateRequest(BaseModel):
     email: str | None = None
     status: str | None = None
 
-
-# ---------- Helpers ----------
 
 def business_to_dict(b: Business) -> dict:
     return {
@@ -103,9 +87,11 @@ def lead_to_dict(lead: Lead) -> dict:
         "email": lead.email,
         "email_found": lead.email_found,
         "website_live": lead.website_live,
+        "status": lead.status,
+        "rejection_reason": lead.rejection_reason,
+        "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
+    }
 
-
-# ---------- Routes ----------
 
 @app.get("/")
 def root():
@@ -152,10 +138,6 @@ def search_leads(req: SearchRequest, db: Session = Depends(get_db)):
 
 @app.post("/api/scrape/{business_id}")
 def scrape_and_qualify(business_id: int, db: Session = Depends(get_db)):
-    """
-    Business ke website se email nikaalta hai, Lead row banata/update
-    karta hai, aur turant qualification rules chala deta hai.
-    """
     business = db.query(Business).filter(Business.id == business_id).first()
     if not business:
         raise HTTPException(status_code=404, detail="Business not found")
@@ -188,7 +170,6 @@ def scrape_and_qualify(business_id: int, db: Session = Depends(get_db)):
 
 @app.get("/api/leads")
 def list_leads(status: str | None = None, db: Session = Depends(get_db)):
-    """Saare leads deta hai, optional status filter (?status=qualified) ke saath."""
     query = db.query(Lead)
     if status:
         query = query.filter(Lead.status == status)
@@ -198,7 +179,6 @@ def list_leads(status: str | None = None, db: Session = Depends(get_db)):
 
 @app.put("/api/leads/{lead_id}")
 def update_lead(lead_id: int, req: LeadUpdateRequest, db: Session = Depends(get_db)):
-    """Review-before-send: client email edit kar sakta hai ya status manually change kar sakta hai."""
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -217,12 +197,6 @@ def update_lead(lead_id: int, req: LeadUpdateRequest, db: Session = Depends(get_
 
 @app.post("/api/leads/{lead_id}/send")
 def send_outreach(lead_id: int, db: Session = Depends(get_db)):
-    """
-    Qualified lead ko outreach email bhejta hai. Safety checks:
-    - Sirf 'qualified' status wale leads ko bheja ja sakta hai
-    - Daily sending limit se zyada nahi bheja jata
-    - OUTREACH_DRY_RUN=true ho to asal email nahi jati, sirf simulate hoti hai
-    """
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
@@ -292,9 +266,5 @@ def list_searches(db: Session = Depends(get_db)):
 
 @app.post("/api/run-scheduled-searches")
 def trigger_scheduled_run():
-    """
-    Manually trigger the same job that runs automatically every
-    SCHEDULE_INTERVAL_HOURS - useful for demo/testing without waiting.
-    """
     run_all_saved_searches()
     return {"status": "completed", "message": "All saved searches re-run and new leads auto-qualified"}
