@@ -5,18 +5,63 @@
 @tailwind utilities;
 
 :root {
-  --bg-deep: #0a1128;
-  --bg-panel: #101d3f;
-  --border-line: #1e3a5f;
-  --accent: #3b82f6;
-  --accent-soft: #60a5fa;
+  --bg-deep: #0a1815;
+  --bg-panel: #10221d;
+  --border-line: #1e4038;
+  --accent: #14b8a6;
+  --accent-soft: #2dd4bf;
+}
+
+[data-theme="light"] {
+  --bg-deep: #faf9f6;
+  --bg-panel: #ffffff;
+  --border-line: #e2ddd3;
+  --accent: #0d9488;
+  --accent-soft: #14b8a6;
 }
 
 body {
   background: var(--bg-deep);
   font-family: 'Inter', sans-serif;
   color: #e2e8f0;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .font-display { font-family: 'Space Grotesk', sans-serif; }
 .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ---- Light theme text/badge overrides ----
+   Dark-mode Tailwind utility classes get overridden here when
+   [data-theme="light"] is set on the root, so components never
+   need per-file dark:/light: variants. */
+[data-theme="light"] body { color: #1f2937; }
+
+[data-theme="light"] .text-slate-50  { color: #0f172a; }
+[data-theme="light"] .text-slate-100 { color: #1e293b; }
+[data-theme="light"] .text-slate-200 { color: #1f2937; }
+[data-theme="light"] .text-slate-300 { color: #374151; }
+[data-theme="light"] .text-slate-400 { color: #6b7280; }
+[data-theme="light"] .text-slate-500 { color: #9ca3af; }
+[data-theme="light"] .text-slate-600 { color: #b7bfc9; }
+
+[data-theme="light"] .bg-slate-700 { background-color: #e5e7eb; color: #374151; }
+
+[data-theme="light"] .bg-emerald-900 { background-color: #d1fae5; color: #065f46; }
+[data-theme="light"] .border-emerald-700 { border-color: #6ee7b7; }
+[data-theme="light"] .text-emerald-300 { color: #065f46; }
+[data-theme="light"] .text-emerald-400 { color: #059669; }
+
+[data-theme="light"] .bg-rose-950 { background-color: #fee2e2; color: #991b1b; }
+[data-theme="light"] .border-rose-800 { border-color: #fca5a5; }
+[data-theme="light"] .text-rose-400 { color: #dc2626; }
+
+[data-theme="light"] .bg-blue-950 { background-color: #dbeafe; color: #1e40af; }
+[data-theme="light"] .border-blue-700 { border-color: #93c5fd; }
+[data-theme="light"] .text-blue-300 { color: #1e40af; }
+
+[data-theme="light"] .bg-violet-950 { background-color: #ede9fe; color: #5b21b6; }
+[data-theme="light"] .border-violet-700 { border-color: #c4b5fd; }
+[data-theme="light"] .text-violet-300 { color: #5b21b6; }
+
+[data-theme="light"] .bg-amber-900 { background-color: #fef3c7; color: #92400e; }
+[data-theme="light"] .text-amber-300 { color: #92400e; }
