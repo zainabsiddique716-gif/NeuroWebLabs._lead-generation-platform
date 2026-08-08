@@ -27,12 +27,12 @@ HEADERS = {
     "User-Agent": "LocalLeadGenPlatform/1.0 (internship-project; respectful-crawler)"
 }
 
-# Geonode Scraper API - proxy + extraction ek endpoint mein. Agar .env mein
-# GEONODE_API_KEY set ho, isay use karte hain (websites jo direct request
-# block kar dete hain, unke liye zyada reliable). Key na ho to system
-# khud direct request pe fallback kar jata hai - koi crash nahi hota.
+# Geonode Scraper API - proxy + extraction ek endpoint mein (docs.geonode.com).
+# Agar .env mein GEONODE_API_KEY set ho, isay use karte hain (websites jo
+# direct request block kar dete hain, unke liye zyada reliable). Key na ho
+# to system khud direct request pe fallback kar jata hai - koi crash nahi.
 GEONODE_API_KEY = os.getenv("GEONODE_API_KEY")
-GEONODE_SCRAPER_URL = "https://api.geonode.com/v1/scraper"
+GEONODE_EXTRACT_URL = "https://scraper.geonode.io/v1/extract"
 
 # Common contact page paths jo try karte hain agar homepage pe email na mile
 CONTACT_PATHS = ["/contact", "/contact-us", "/contact.html", "/about", "/about-us"]
@@ -58,8 +58,7 @@ class EmailScraper(BaseScraper):
         robots.txt check karta hai - lekin sirf jab explicitly "Disallow" mile.
         Agar robots.txt fetch hi na ho paaye (404, firewall block, timeout, etc.)
         to default ALLOW maante hain - warna bohat si genuine websites
-        false-positive block ho jaati hain (common cause: firewalls unusual
-        bot User-Agents ko robots.txt request pe hi reject kar dete hain).
+        false-positive block ho jaati hain.
         """
         try:
             parsed = urlparse(url)
@@ -67,8 +66,6 @@ class EmailScraper(BaseScraper):
 
             resp = requests.get(robots_url, headers=HEADERS, timeout=5)
 
-            # robots.txt maujood nahi (404) ya server ne request hi reject kar di
-            # -> ye "disallow" nahi hai, isliye allow maante hain
             if resp.status_code != 200:
                 return True
 
@@ -77,7 +74,6 @@ class EmailScraper(BaseScraper):
             return rp.can_fetch(HEADERS["User-Agent"], url)
 
         except Exception:
-            # Network error, timeout, etc. - fail-safe: allow karte hain
             return True
 
     def _extract_emails_from_html(self, html: str) -> list[str]:
@@ -86,19 +82,16 @@ class EmailScraper(BaseScraper):
 
         soup = BeautifulSoup(html, "html.parser")
 
-        # mailto: links (sabse reliable source)
         for link in soup.find_all("a", href=True):
             href = link["href"]
             if href.startswith("mailto:"):
                 email = href.replace("mailto:", "").split("?")[0].strip()
                 emails.add(email)
 
-        # Plain text mein regex se dhoondo (footer, contact section, etc.)
         text = soup.get_text(" ")
         for match in EMAIL_REGEX.findall(text):
             emails.add(match)
 
-        # Junk/fake emails filter out karo
         clean_emails = [
             e for e in emails
             if not any(junk in e.lower() for junk in JUNK_PATTERNS)
@@ -107,25 +100,29 @@ class EmailScraper(BaseScraper):
         return clean_emails
 
     def _fetch_via_geonode(self, url: str) -> str | None:
-        """Geonode Scraper API se page fetch karta hai (proxy + extraction ek sath)."""
+        """
+        Geonode Extraction API se page fetch karta hai (proxy + rendering
+        ek sath handle hota hai). Response format (docs.geonode.com ke
+        mutabiq):
+            { "data": { "html": "...", "markdown": "..." }, "metadata": {...} }
+        """
         if not GEONODE_API_KEY:
             return None
         try:
             resp = requests.post(
-                GEONODE_SCRAPER_URL,
-                headers={"Authorization": f"Bearer {GEONODE_API_KEY}"},
-                json={"url": url},
-                timeout=self.timeout + 10,
+                GEONODE_EXTRACT_URL,
+                headers={
+                    "X-Api-Key": GEONODE_API_KEY,
+                    "Content-Type": "application/json",
+                },
+                json={"url": url, "formats": ["html"]},
+                timeout=self.timeout + 15,
             )
             if resp.status_code != 200:
                 return None
             data = resp.json()
-            # Geonode response mein content alag keys ke neeche aa sakta hai -
-            # jo bhi mile wahi use karte hain
-            for key in ("html", "content", "markdown", "text"):
-                if data.get(key):
-                    return data[key]
-            return None
+            html = data.get("data", {}).get("html")
+            return html if html else None
         except (requests.RequestException, ValueError):
             return None
 
@@ -152,7 +149,6 @@ class EmailScraper(BaseScraper):
             result.error_reason = "no_website"
             return result
 
-        # URL normalize karo (https:// missing ho to add karo)
         if not website_url.startswith(("http://", "https://")):
             website_url = "https://" + website_url
 
@@ -160,7 +156,6 @@ class EmailScraper(BaseScraper):
             result.error_reason = "blocked_by_robots_txt"
             return result
 
-        # Step 1: Homepage check
         html = self._fetch_page(website_url)
         if html is None:
             result.error_reason = "website_unreachable"
@@ -172,7 +167,6 @@ class EmailScraper(BaseScraper):
 
         emails = self._extract_emails_from_html(html)
 
-        # Step 2: Agar homepage pe email nahi mila, contact pages try karo
         if not emails:
             parsed = urlparse(website_url)
             base = f"{parsed.scheme}://{parsed.netloc}"
@@ -180,7 +174,7 @@ class EmailScraper(BaseScraper):
             for path in CONTACT_PATHS:
                 if emails:
                     break
-                time.sleep(0.5)  # respectful rate limiting
+                time.sleep(0.5)
                 contact_url = urljoin(base, path)
                 contact_html = self._fetch_page(contact_url)
                 if contact_html:
@@ -188,7 +182,7 @@ class EmailScraper(BaseScraper):
                     emails = self._extract_emails_from_html(contact_html)
 
         if emails:
-            result.email = emails[0]  # pehla valid email use karo
+            result.email = emails[0]
             result.email_found = True
         else:
             result.error_reason = "no_email_found"
