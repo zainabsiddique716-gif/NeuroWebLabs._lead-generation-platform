@@ -12,6 +12,7 @@ Failure handling (zaroori hai - client brief ka requirement):
 - robots.txt disallow karta ho -> scrape skip, respectful rehte hain
 """
 
+import os
 import re
 import time
 import urllib.robotparser
@@ -25,6 +26,13 @@ from .base import BaseScraper, ScrapeResult
 HEADERS = {
     "User-Agent": "LocalLeadGenPlatform/1.0 (internship-project; respectful-crawler)"
 }
+
+# Geonode Scraper API - proxy + extraction ek endpoint mein. Agar .env mein
+# GEONODE_API_KEY set ho, isay use karte hain (websites jo direct request
+# block kar dete hain, unke liye zyada reliable). Key na ho to system
+# khud direct request pe fallback kar jata hai - koi crash nahi hota.
+GEONODE_API_KEY = os.getenv("GEONODE_API_KEY")
+GEONODE_SCRAPER_URL = "https://api.geonode.com/v1/scraper"
 
 # Common contact page paths jo try karte hain agar homepage pe email na mile
 CONTACT_PATHS = ["/contact", "/contact-us", "/contact.html", "/about", "/about-us"]
@@ -98,7 +106,37 @@ class EmailScraper(BaseScraper):
 
         return clean_emails
 
+    def _fetch_via_geonode(self, url: str) -> str | None:
+        """Geonode Scraper API se page fetch karta hai (proxy + extraction ek sath)."""
+        if not GEONODE_API_KEY:
+            return None
+        try:
+            resp = requests.post(
+                GEONODE_SCRAPER_URL,
+                headers={"Authorization": f"Bearer {GEONODE_API_KEY}"},
+                json={"url": url},
+                timeout=self.timeout + 10,
+            )
+            if resp.status_code != 200:
+                return None
+            data = resp.json()
+            # Geonode response mein content alag keys ke neeche aa sakta hai -
+            # jo bhi mile wahi use karte hain
+            for key in ("html", "content", "markdown", "text"):
+                if data.get(key):
+                    return data[key]
+            return None
+        except (requests.RequestException, ValueError):
+            return None
+
     def _fetch_page(self, url: str) -> str | None:
+        # Pehle Geonode try karte hain (agar configured ho) - proxy ke zariye
+        # blocked/protected sites bhi milne ka chance zyada hota hai
+        geonode_result = self._fetch_via_geonode(url)
+        if geonode_result:
+            return geonode_result
+
+        # Geonode na ho ya fail ho jaye, direct request pe fallback
         try:
             resp = requests.get(url, headers=HEADERS, timeout=self.timeout)
             if resp.status_code == 200:
@@ -154,4 +192,5 @@ class EmailScraper(BaseScraper):
             result.email_found = True
         else:
             result.error_reason = "no_email_found"
+
         return result
