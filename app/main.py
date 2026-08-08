@@ -98,13 +98,11 @@ def lead_to_dict(lead: Lead) -> dict:
         "business_name": lead.business.name if lead.business else None,
         "category": lead.business.category if lead.business else None,
         "website_url": lead.business.website_url if lead.business else None,
+        "phone": lead.business.phone if lead.business else None,
+        "address": lead.business.address if lead.business else None,
         "email": lead.email,
         "email_found": lead.email_found,
         "website_live": lead.website_live,
-        "status": lead.status,
-        "rejection_reason": lead.rejection_reason,
-        "updated_at": lead.updated_at.isoformat() if lead.updated_at else None,
-    }
 
 
 # ---------- Routes ----------
