@@ -19,6 +19,8 @@ export interface Lead {
   business_name: string | null;
   category: string | null;
   website_url: string | null;
+  phone: string | null;
+  address: string | null;
   email: string | null;
   email_found: boolean;
   website_live: boolean | null;
