@@ -28,10 +28,10 @@ export function SearchPanel({ onLeadUpdated }: { onLeadUpdated: () => void }) {
     try {
       const res = await api.scrapeAndQualify(businessId);
       const lead = res.lead;
-      const methodTag = res.fetch_method ? ` [${res.fetch_method}]` : "";
-      const label = lead.email_found
-        ? `${lead.email} → ${lead.status}${methodTag}`
-        : `not found (${res.scrape_error_reason ?? "no_email_found"})${methodTag}`;
+
+const label = lead.email_found
+  ? `${lead.email} → ${lead.status}`
+  : `not found (${res.scrape_error_reason ?? "no_email_found"})`;
       setScraping((s) => ({ ...s, [businessId]: label }));
       onLeadUpdated();
     } catch (e) {
