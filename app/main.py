@@ -164,6 +164,7 @@ def scrape_and_qualify(business_id: int, db: Session = Depends(get_db)):
 
     return {
         "scrape_error_reason": scrape_result.error_reason,
+        "fetch_method": scrape_result.fetch_method,
         "lead": lead_to_dict(lead),
     }
 
