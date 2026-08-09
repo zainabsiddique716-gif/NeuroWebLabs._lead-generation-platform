@@ -72,6 +72,7 @@ export function SearchPanel({ onLeadUpdated }: { onLeadUpdated: () => void }) {
               <tr className="text-left text-slate-400 text-xs uppercase tracking-wide border-b border-[var(--border-line)]">
                 <th className="px-4 py-3">Business</th>
                 <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">Location</th>
                 <th className="px-4 py-3">Address</th>
                 <th className="px-4 py-3">Phone</th>
                 <th className="px-4 py-3">Rating</th>
@@ -84,6 +85,7 @@ export function SearchPanel({ onLeadUpdated }: { onLeadUpdated: () => void }) {
                 <tr key={b.id} className="border-b border-[var(--border-line)] last:border-0">
                   <td className="px-4 py-3">{b.name}</td>
                   <td className="px-4 py-3 text-slate-400">{b.category || "—"}</td>
+                  <td className="px-4 py-3 text-slate-400">{location}</td>
                   <td className="px-4 py-3 text-slate-400">{b.address || "—"}</td>
                   <td className="px-4 py-3 text-slate-400">{b.phone || "—"}</td>
                   <td className="px-4 py-3 text-slate-400">{b.rating != null ? b.rating : "—"}</td>
