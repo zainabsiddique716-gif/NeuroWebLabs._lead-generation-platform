@@ -12,6 +12,7 @@ Failure handling (zaroori hai - client brief ka requirement):
 - robots.txt disallow karta ho -> scrape skip, respectful rehte hain
 """
 
+import logging
 import os
 import re
 import time
@@ -23,6 +24,8 @@ from bs4 import BeautifulSoup
 
 from .base import BaseScraper, ScrapeResult
 
+logger = logging.getLogger("email_scraper")
+
 HEADERS = {
     "User-Agent": "LocalLeadGenPlatform/1.0 (internship-project; respectful-crawler)"
 }
@@ -33,6 +36,11 @@ HEADERS = {
 # to system khud direct request pe fallback kar jata hai - koi crash nahi.
 GEONODE_API_KEY = os.getenv("GEONODE_API_KEY")
 GEONODE_EXTRACT_URL = "https://scraper.geonode.io/v1/extract"
+
+if GEONODE_API_KEY:
+    logger.info(f"[EmailScraper] Geonode API key detected (length={len(GEONODE_API_KEY)}) - will use Geonode first")
+else:
+    logger.warning("[EmailScraper] No GEONODE_API_KEY found in environment - using direct requests only")
 
 # Common contact page paths jo try karte hain agar homepage pe email na mile
 CONTACT_PATHS = ["/contact", "/contact-us", "/contact.html", "/about", "/about-us"]
@@ -119,28 +127,35 @@ class EmailScraper(BaseScraper):
                 timeout=self.timeout + 15,
             )
             if resp.status_code != 200:
+                logger.warning(f"[Geonode] {url} -> HTTP {resp.status_code}: {resp.text[:200]}")
                 return None
             data = resp.json()
             html = data.get("data", {}).get("html")
-            return html if html else None
-        except (requests.RequestException, ValueError):
+            if not html:
+                logger.warning(f"[Geonode] {url} -> 200 OK but no 'html' in response: {str(data)[:200]}")
+                return None
+            logger.info(f"[Geonode] {url} -> success ({len(html)} chars)")
+            return html
+        except requests.RequestException as e:
+            logger.warning(f"[Geonode] {url} -> request error: {e}")
+            return None
+        except ValueError as e:
+            logger.warning(f"[Geonode] {url} -> JSON parse error: {e}")
             return None
 
-    def _fetch_page(self, url: str) -> str | None:
-        # Pehle Geonode try karte hain (agar configured ho) - proxy ke zariye
-        # blocked/protected sites bhi milne ka chance zyada hota hai
+    def _fetch_page(self, url: str) -> tuple[str | None, str | None]:
+        """Returns (html, method) - method is 'geonode' or 'direct' or None."""
         geonode_result = self._fetch_via_geonode(url)
         if geonode_result:
-            return geonode_result
+            return geonode_result, "geonode"
 
-        # Geonode na ho ya fail ho jaye, direct request pe fallback
         try:
             resp = requests.get(url, headers=HEADERS, timeout=self.timeout)
             if resp.status_code == 200:
-                return resp.text
+                return resp.text, "direct"
         except requests.RequestException:
-            return None
-        return None
+            pass
+        return None, None
 
     def scrape(self, website_url: str) -> ScrapeResult:
         result = ScrapeResult(website_url=website_url)
@@ -156,13 +171,14 @@ class EmailScraper(BaseScraper):
             result.error_reason = "blocked_by_robots_txt"
             return result
 
-        html = self._fetch_page(website_url)
+        html, method = self._fetch_page(website_url)
         if html is None:
             result.error_reason = "website_unreachable"
             result.website_live = False
             return result
 
         result.website_live = True
+        result.fetch_method = method
         result.pages_checked.append(website_url)
 
         emails = self._extract_emails_from_html(html)
@@ -176,7 +192,7 @@ class EmailScraper(BaseScraper):
                     break
                 time.sleep(0.5)
                 contact_url = urljoin(base, path)
-                contact_html = self._fetch_page(contact_url)
+                contact_html, _ = self._fetch_page(contact_url)
                 if contact_html:
                     result.pages_checked.append(contact_url)
                     emails = self._extract_emails_from_html(contact_html)
