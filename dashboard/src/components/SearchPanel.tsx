@@ -28,10 +28,10 @@ export function SearchPanel({ onLeadUpdated }: { onLeadUpdated: () => void }) {
     try {
       const res = await api.scrapeAndQualify(businessId);
       const lead = res.lead;
-
-const label = lead.email_found
-  ? `${lead.email} → ${lead.status}`
-  : `not found (${res.scrape_error_reason ?? "no_email_found"})`;
+      const methodTag = res.fetch_method ? ` [${res.fetch_method}]` : "";
+      const label = lead.email_found
+        ? `${lead.email} → ${lead.status}${methodTag}`
+        : `not found (${res.scrape_error_reason ?? "no_email_found"})${methodTag}`;
       setScraping((s) => ({ ...s, [businessId]: label }));
       onLeadUpdated();
     } catch (e) {
@@ -75,7 +75,6 @@ const label = lead.email_found
                 <th className="px-4 py-3">Location</th>
                 <th className="px-4 py-3">Address</th>
                 <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">Rating</th>
                 <th className="px-4 py-3">Website</th>
                 <th className="px-4 py-3">Email</th>
               </tr>
@@ -88,7 +87,6 @@ const label = lead.email_found
                   <td className="px-4 py-3 text-slate-400">{location}</td>
                   <td className="px-4 py-3 text-slate-400">{b.address || "—"}</td>
                   <td className="px-4 py-3 text-slate-400">{b.phone || "—"}</td>
-                  <td className="px-4 py-3 text-slate-400">{b.rating != null ? b.rating : "—"}</td>
                   <td className="px-4 py-3">
                     {b.website_url ? (
                       <a href={b.website_url} target="_blank" rel="noreferrer" className="text-teal-400 hover:underline">
